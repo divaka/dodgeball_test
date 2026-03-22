@@ -236,11 +236,42 @@ function playNoiseBurst({
   source.stop(now + duration + 0.02);
 }
 
+function playRitualStrike({ start = 0, frequency = 780, gain = 0.08 } = {}) {
+  playTone({
+    type: "square",
+    frequency,
+    frequencyEnd: Math.max(160, frequency * 0.42),
+    duration: 0.11,
+    gain,
+    start,
+    attack: 0.002,
+    release: 0.2,
+  });
+  playTone({
+    type: "triangle",
+    frequency: frequency * 0.5,
+    frequencyEnd: Math.max(90, frequency * 0.2),
+    duration: 0.22,
+    gain: gain * 0.7,
+    start: start + 0.015,
+    attack: 0.003,
+    release: 0.24,
+    detune: -6,
+  });
+  playNoiseBurst({
+    start,
+    duration: 0.12,
+    gain: gain * 0.45,
+    bandpass: 1900,
+  });
+}
+
 function playHitSound() {
   playTone({ type: "sawtooth", frequency: 220, frequencyEnd: 54, duration: 0.32, gain: 0.22, detune: -12 });
   playTone({ type: "square", frequency: 510, frequencyEnd: 120, duration: 0.26, gain: 0.16, start: 0.015, detune: 8 });
   playNoiseBurst({ duration: 0.24, gain: 0.18, lowpass: 820 });
   playNoiseBurst({ start: 0.03, duration: 0.18, gain: 0.11, bandpass: 410 });
+  playRitualStrike({ start: 0.01, frequency: 680, gain: 0.07 });
 }
 
 function playDashSound() {
@@ -251,12 +282,14 @@ function playDashSound() {
 function playSpawnSound() {
   playTone({ type: "sine", frequency: 740, frequencyEnd: 500, duration: 0.18, gain: 0.06, detune: 15 });
   playTone({ type: "triangle", frequency: 266, frequencyEnd: 188, duration: 0.28, gain: 0.05, start: 0.02, detune: -10 });
+  playRitualStrike({ start: 0.035, frequency: 920, gain: 0.035 });
 }
 
 function playStartSound() {
   playTone({ type: "triangle", frequency: noteToFrequency(57), frequencyEnd: noteToFrequency(61), duration: 0.24, gain: 0.1 });
   playTone({ type: "sine", frequency: noteToFrequency(64), frequencyEnd: noteToFrequency(69), duration: 0.36, gain: 0.08, start: 0.1 });
   playNoiseBurst({ start: 0.04, duration: 0.2, gain: 0.05, bandpass: 1180 });
+  playRitualStrike({ start: 0.18, frequency: 840, gain: 0.06 });
 }
 
 function playGameOverSound() {
@@ -264,6 +297,7 @@ function playGameOverSound() {
   playTone({ type: "sawtooth", frequency: noteToFrequency(47), frequencyEnd: noteToFrequency(34), duration: 0.82, gain: 0.14, start: 0.06, detune: -9 });
   playTone({ type: "square", frequency: 160, frequencyEnd: 34, duration: 0.52, gain: 0.08, start: 0.1 });
   playNoiseBurst({ start: 0.1, duration: 0.42, gain: 0.08, lowpass: 540 });
+  playRitualStrike({ start: 0.24, frequency: 520, gain: 0.055 });
 }
 
 function updateMusic() {
@@ -273,9 +307,10 @@ function updateMusic() {
   audio.lastBeat = beat;
   const now = audio.context.currentTime;
   const start = Math.max(now + 0.02, audio.nextMusicAt || now);
-  const scale = [41, 44, 46, 49, 51, 56];
+  const scale = [41, 44, 46, 48, 51, 53];
   const root = scale[beat % scale.length];
-  const tension = scale[(beat + 1) % scale.length] + (beat % 3 === 2 ? 11 : 6);
+  const tension = scale[(beat + 2) % scale.length] + (beat % 3 === 2 ? 12 : 7);
+  const chant = scale[(beat + 4) % scale.length] + 12;
   playTone({
     type: "sawtooth",
     frequency: noteToFrequency(root),
@@ -289,29 +324,50 @@ function updateMusic() {
   playTone({
     type: "triangle",
     frequency: noteToFrequency(tension),
-    frequencyEnd: noteToFrequency(tension - 4),
-    duration: 0.88,
+    frequencyEnd: noteToFrequency(tension - 7),
+    duration: 1.02,
     gain: 0.075,
-    start: start - now + 0.06,
+    start: start - now + 0.08,
     destination: audio.musicGain,
     detune: 13,
   });
   playTone({
     type: "sine",
-    frequency: noteToFrequency(root + 23),
-    frequencyEnd: noteToFrequency(root + 11),
-    duration: 0.52,
-    gain: 0.045,
-    start: start - now + 0.28,
+    frequency: noteToFrequency(chant),
+    frequencyEnd: noteToFrequency(chant - 9),
+    duration: 0.74,
+    gain: 0.06,
+    start: start - now + 0.22,
     destination: audio.musicGain,
-    detune: -19,
+    detune: beat % 2 === 0 ? -24 : 19,
   });
-  if (beat % 2 === 1) {
-    playNoiseBurst({
-      start: start - now + 0.12,
-      duration: 0.36,
+  playTone({
+    type: "triangle",
+    frequency: noteToFrequency(root + 12),
+    frequencyEnd: noteToFrequency(root + 5),
+    duration: 0.42,
+    gain: 0.05,
+    start: start - now + 0.52,
+    destination: audio.musicGain,
+    detune: -8,
+  });
+  if (beat % 2 === 0) {
+    playRitualStrike({
+      start: start - now + 0.03,
+      frequency: 900 - (beat % 3) * 110,
+      gain: 0.05,
+    });
+  } else {
+    playRitualStrike({
+      start: start - now + 0.18,
+      frequency: 620,
       gain: 0.045,
-      bandpass: 1400,
+    });
+    playNoiseBurst({
+      start: start - now + 0.14,
+      duration: 0.42,
+      gain: 0.05,
+      bandpass: 1280,
     });
   }
   audio.nextMusicAt = start + 0.72;
