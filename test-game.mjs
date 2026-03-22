@@ -12,6 +12,8 @@ const actions = [
   { keys: [], frames: 40 },
 ];
 
+const TEST_URL = process.env.TEST_URL || "http://127.0.0.1:4173";
+
 async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({
@@ -26,7 +28,7 @@ async function main() {
   });
   page.on("pageerror", (error) => consoleErrors.push(String(error)));
 
-  await page.goto("http://127.0.0.1:4173", { waitUntil: "networkidle" });
+  await page.goto(TEST_URL, { waitUntil: "networkidle" });
   await page.click("#startBtn");
 
   for (const action of actions) {

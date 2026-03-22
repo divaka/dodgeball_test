@@ -39,10 +39,12 @@ function createAudioSystem() {
     master: null,
     musicGain: null,
     ambientNoiseGain: null,
+    subDroneGain: null,
     noiseBuffer: null,
     nextMusicAt: 0,
     lastBeat: -1,
     windSource: null,
+    droneLfo: null,
     enabled: true,
   };
 }
@@ -56,18 +58,23 @@ function ensureAudioContext() {
     const master = context.createGain();
     const musicGain = context.createGain();
     const ambientNoiseGain = context.createGain();
-    master.gain.value = 0.22;
-    musicGain.gain.value = 0.18;
-    ambientNoiseGain.gain.value = 0.03;
+    const subDroneGain = context.createGain();
+    master.gain.value = 0.38;
+    musicGain.gain.value = 0.34;
+    ambientNoiseGain.gain.value = 0.1;
+    subDroneGain.gain.value = 0.16;
     musicGain.connect(master);
     ambientNoiseGain.connect(master);
+    subDroneGain.connect(master);
     master.connect(context.destination);
     audio.context = context;
     audio.master = master;
     audio.musicGain = musicGain;
     audio.ambientNoiseGain = ambientNoiseGain;
+    audio.subDroneGain = subDroneGain;
     audio.noiseBuffer = createNoiseBuffer(context);
     startAmbientWind();
+    startSubDrone();
   }
   if (audio.context.state === "suspended") {
     audio.context.resume().catch(() => {});
@@ -90,20 +97,66 @@ function startAmbientWind() {
   const filter = audio.context.createBiquadFilter();
   const lfo = audio.context.createOscillator();
   const lfoGain = audio.context.createGain();
+  const wobble = audio.context.createOscillator();
+  const wobbleGain = audio.context.createGain();
   source.buffer = audio.noiseBuffer;
   source.loop = true;
   filter.type = "bandpass";
-  filter.frequency.value = 420;
-  filter.Q.value = 0.4;
-  lfo.frequency.value = 0.09;
-  lfoGain.gain.value = 180;
+  filter.frequency.value = 260;
+  filter.Q.value = 0.8;
+  lfo.frequency.value = 0.06;
+  lfoGain.gain.value = 210;
+  wobble.frequency.value = 0.19;
+  wobbleGain.gain.value = 90;
   lfo.connect(lfoGain);
   lfoGain.connect(filter.frequency);
+  wobble.connect(wobbleGain);
+  wobbleGain.connect(filter.Q);
   source.connect(filter);
   filter.connect(audio.ambientNoiseGain);
   source.start();
   lfo.start();
-  audio.windSource = { source, filter, lfo, lfoGain };
+  wobble.start();
+  audio.windSource = { source, filter, lfo, lfoGain, wobble, wobbleGain };
+}
+
+function startSubDrone() {
+  if (!audio.context || audio.droneLfo) return;
+  const baseOsc = audio.context.createOscillator();
+  const upperOsc = audio.context.createOscillator();
+  const baseGain = audio.context.createGain();
+  const upperGain = audio.context.createGain();
+  const filter = audio.context.createBiquadFilter();
+  const lfo = audio.context.createOscillator();
+  const lfoGain = audio.context.createGain();
+
+  baseOsc.type = "sawtooth";
+  upperOsc.type = "triangle";
+  baseOsc.frequency.value = 43;
+  upperOsc.frequency.value = 61;
+  baseOsc.detune.value = -14;
+  upperOsc.detune.value = 9;
+  baseGain.gain.value = 0.34;
+  upperGain.gain.value = 0.16;
+  filter.type = "lowpass";
+  filter.frequency.value = 190;
+  filter.Q.value = 1.2;
+  lfo.frequency.value = 0.11;
+  lfoGain.gain.value = 44;
+
+  lfo.connect(lfoGain);
+  lfoGain.connect(baseOsc.detune);
+  lfoGain.connect(upperOsc.detune);
+  baseOsc.connect(baseGain);
+  upperOsc.connect(upperGain);
+  baseGain.connect(filter);
+  upperGain.connect(filter);
+  filter.connect(audio.subDroneGain);
+
+  baseOsc.start();
+  upperOsc.start();
+  lfo.start();
+  audio.droneLfo = { baseOsc, upperOsc, baseGain, upperGain, filter, lfo, lfoGain };
 }
 
 function setSoundButton() {
@@ -116,7 +169,7 @@ function setMasterVolume() {
   if (!audio.master || !audio.context) return;
   const now = audio.context.currentTime;
   audio.master.gain.cancelScheduledValues(now);
-  audio.master.gain.setTargetAtTime(state.soundEnabled ? 0.22 : 0.0001, now, 0.08);
+  audio.master.gain.setTargetAtTime(state.soundEnabled ? 0.38 : 0.0001, now, 0.08);
 }
 
 function noteToFrequency(note) {
@@ -127,6 +180,7 @@ function playTone({
   type = "sine",
   frequency = 220,
   frequencyEnd = frequency,
+  detune = 0,
   start = 0,
   duration = 0.3,
   gain = 0.1,
@@ -139,6 +193,7 @@ function playTone({
   const osc = audio.context.createOscillator();
   const amp = audio.context.createGain();
   osc.type = type;
+  osc.detune.value = detune;
   osc.frequency.setValueAtTime(frequency, now);
   osc.frequency.exponentialRampToValueAtTime(Math.max(20, frequencyEnd), now + duration);
   amp.gain.setValueAtTime(0.0001, now);
@@ -182,72 +237,84 @@ function playNoiseBurst({
 }
 
 function playHitSound() {
-  playTone({ type: "sawtooth", frequency: 190, frequencyEnd: 70, duration: 0.24, gain: 0.1 });
-  playTone({ type: "triangle", frequency: 460, frequencyEnd: 180, duration: 0.18, gain: 0.07, start: 0.02 });
-  playNoiseBurst({ duration: 0.17, gain: 0.08, lowpass: 980 });
+  playTone({ type: "sawtooth", frequency: 220, frequencyEnd: 54, duration: 0.32, gain: 0.22, detune: -12 });
+  playTone({ type: "square", frequency: 510, frequencyEnd: 120, duration: 0.26, gain: 0.16, start: 0.015, detune: 8 });
+  playNoiseBurst({ duration: 0.24, gain: 0.18, lowpass: 820 });
+  playNoiseBurst({ start: 0.03, duration: 0.18, gain: 0.11, bandpass: 410 });
 }
 
 function playDashSound() {
-  playNoiseBurst({ duration: 0.16, gain: 0.035, bandpass: 850 });
-  playTone({ type: "triangle", frequency: 280, frequencyEnd: 360, duration: 0.12, gain: 0.03 });
+  playNoiseBurst({ duration: 0.22, gain: 0.07, bandpass: 920 });
+  playTone({ type: "triangle", frequency: 220, frequencyEnd: 430, duration: 0.15, gain: 0.08 });
 }
 
 function playSpawnSound() {
-  playTone({ type: "sine", frequency: 620, frequencyEnd: 530, duration: 0.12, gain: 0.02 });
-  playTone({ type: "triangle", frequency: 312, frequencyEnd: 250, duration: 0.2, gain: 0.018, start: 0.02 });
+  playTone({ type: "sine", frequency: 740, frequencyEnd: 500, duration: 0.18, gain: 0.06, detune: 15 });
+  playTone({ type: "triangle", frequency: 266, frequencyEnd: 188, duration: 0.28, gain: 0.05, start: 0.02, detune: -10 });
 }
 
 function playStartSound() {
-  playTone({ type: "triangle", frequency: noteToFrequency(57), frequencyEnd: noteToFrequency(60), duration: 0.18, gain: 0.05 });
-  playTone({ type: "sine", frequency: noteToFrequency(64), frequencyEnd: noteToFrequency(67), duration: 0.3, gain: 0.04, start: 0.12 });
+  playTone({ type: "triangle", frequency: noteToFrequency(57), frequencyEnd: noteToFrequency(61), duration: 0.24, gain: 0.1 });
+  playTone({ type: "sine", frequency: noteToFrequency(64), frequencyEnd: noteToFrequency(69), duration: 0.36, gain: 0.08, start: 0.1 });
+  playNoiseBurst({ start: 0.04, duration: 0.2, gain: 0.05, bandpass: 1180 });
 }
 
 function playGameOverSound() {
-  playTone({ type: "triangle", frequency: noteToFrequency(55), frequencyEnd: noteToFrequency(50), duration: 0.35, gain: 0.06 });
-  playTone({ type: "sawtooth", frequency: noteToFrequency(48), frequencyEnd: noteToFrequency(40), duration: 0.55, gain: 0.05, start: 0.08 });
-  playNoiseBurst({ start: 0.12, duration: 0.3, gain: 0.03, lowpass: 600 });
+  playTone({ type: "triangle", frequency: noteToFrequency(55), frequencyEnd: noteToFrequency(47), duration: 0.45, gain: 0.12 });
+  playTone({ type: "sawtooth", frequency: noteToFrequency(47), frequencyEnd: noteToFrequency(34), duration: 0.82, gain: 0.14, start: 0.06, detune: -9 });
+  playTone({ type: "square", frequency: 160, frequencyEnd: 34, duration: 0.52, gain: 0.08, start: 0.1 });
+  playNoiseBurst({ start: 0.1, duration: 0.42, gain: 0.08, lowpass: 540 });
 }
 
 function updateMusic() {
   if (state.mode !== "playing" || !ensureAudioContext()) return;
-  const beat = Math.floor(state.elapsed / 1.2);
+  const beat = Math.floor(state.elapsed / 0.95);
   if (beat === audio.lastBeat) return;
   audio.lastBeat = beat;
   const now = audio.context.currentTime;
   const start = Math.max(now + 0.02, audio.nextMusicAt || now);
-  const scale = [45, 48, 52, 55, 57, 60];
+  const scale = [41, 44, 46, 49, 51, 56];
   const root = scale[beat % scale.length];
-  const tension = scale[(beat + 2) % scale.length] + (beat % 4 === 3 ? 12 : 0);
+  const tension = scale[(beat + 1) % scale.length] + (beat % 3 === 2 ? 11 : 6);
   playTone({
-    type: "triangle",
+    type: "sawtooth",
     frequency: noteToFrequency(root),
-    frequencyEnd: noteToFrequency(root - 2),
-    duration: 1.35,
-    gain: 0.035,
+    frequencyEnd: noteToFrequency(root - 5),
+    duration: 1.55,
+    gain: 0.09,
     start: start - now,
     destination: audio.musicGain,
+    detune: beat % 2 === 0 ? -7 : 7,
+  });
+  playTone({
+    type: "triangle",
+    frequency: noteToFrequency(tension),
+    frequencyEnd: noteToFrequency(tension - 4),
+    duration: 0.88,
+    gain: 0.075,
+    start: start - now + 0.06,
+    destination: audio.musicGain,
+    detune: 13,
   });
   playTone({
     type: "sine",
-    frequency: noteToFrequency(tension),
-    frequencyEnd: noteToFrequency(tension + 1),
-    duration: 0.62,
-    gain: 0.02,
-    start: start - now + 0.18,
+    frequency: noteToFrequency(root + 23),
+    frequencyEnd: noteToFrequency(root + 11),
+    duration: 0.52,
+    gain: 0.045,
+    start: start - now + 0.28,
     destination: audio.musicGain,
+    detune: -19,
   });
-  if (beat % 2 === 0) {
-    playTone({
-      type: "sine",
-      frequency: noteToFrequency(root + 19),
-      frequencyEnd: noteToFrequency(root + 12),
-      duration: 0.45,
-      gain: 0.016,
-      start: start - now + 0.52,
-      destination: audio.musicGain,
+  if (beat % 2 === 1) {
+    playNoiseBurst({
+      start: start - now + 0.12,
+      duration: 0.36,
+      gain: 0.045,
+      bandpass: 1400,
     });
   }
-  audio.nextMusicAt = start + 0.96;
+  audio.nextMusicAt = start + 0.72;
 }
 
 function createPlayer() {
