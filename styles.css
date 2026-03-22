@@ -1,0 +1,300 @@
+:root {
+  --bg-top: #1d1022;
+  --bg-mid: #12253d;
+  --bg-bottom: #0d151f;
+  --ink: #f3e9d2;
+  --accent: #ff6b4a;
+  --accent-soft: #ffb27a;
+  --specter: #c9fff6;
+  --specter-glow: rgba(146, 255, 243, 0.45);
+  --panel: rgba(16, 16, 24, 0.74);
+  --line: rgba(255, 233, 198, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: "PingFang TC", "Noto Sans TC", sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(255, 98, 0, 0.14), transparent 24%),
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 46%, var(--bg-bottom) 100%);
+  color: var(--ink);
+  touch-action: none;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+
+.frame {
+  width: min(100%, 460px);
+  display: grid;
+  gap: 12px;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  padding: 0 4px;
+}
+
+.hud-right {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 6px;
+}
+
+.label,
+.eyebrow {
+  margin: 0;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(243, 233, 210, 0.72);
+  font-size: 0.78rem;
+}
+
+.timer,
+h1,
+h2 {
+  margin: 0;
+  font-family: "BiauKai", "STKaiti", "Noto Serif TC", serif;
+}
+
+.timer {
+  font-size: 1.35rem;
+}
+
+.stage-wrap {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 420 / 760;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at center, rgba(252, 188, 127, 0.12), transparent 32%),
+    rgba(5, 6, 15, 0.56);
+  backdrop-filter: blur(6px);
+  z-index: 3;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.panel {
+  width: min(100%, 340px);
+  padding: 24px 22px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(40, 17, 23, 0.88), rgba(17, 19, 36, 0.92)),
+    var(--panel);
+  border: 1px solid rgba(255, 226, 183, 0.14);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+}
+
+h1,
+h2 {
+  font-size: clamp(2rem, 7vw, 2.8rem);
+  line-height: 1.1;
+}
+
+.body-copy {
+  margin: 14px 0 0;
+  color: rgba(243, 233, 210, 0.88);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.tips {
+  margin: 16px 0 0;
+  padding-left: 18px;
+  color: rgba(243, 233, 210, 0.9);
+  line-height: 1.6;
+}
+
+.cta,
+.dash-btn,
+.sound-btn {
+  border: 0;
+  color: #1d0f0e;
+  font-family: "BiauKai", "STKaiti", "Noto Serif TC", serif;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.sound-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 245, 217, 0.14);
+  color: var(--ink);
+  border: 1px solid rgba(255, 238, 206, 0.18);
+  font-size: 0.9rem;
+  backdrop-filter: blur(6px);
+}
+
+.sound-btn.is-muted {
+  opacity: 0.58;
+}
+
+.cta {
+  margin-top: 18px;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-soft), var(--accent));
+  box-shadow: 0 14px 24px rgba(255, 107, 74, 0.25);
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.joystick-zone {
+  width: 148px;
+  height: 148px;
+  display: grid;
+  place-items: center;
+}
+
+.joystick-base {
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 40% 35%, rgba(255, 206, 171, 0.12), transparent 24%),
+    rgba(255, 249, 230, 0.08);
+  border: 1px solid rgba(255, 239, 215, 0.14);
+  position: relative;
+  backdrop-filter: blur(6px);
+}
+
+.joystick-stick {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  position: absolute;
+  top: 34px;
+  left: 34px;
+  background: linear-gradient(180deg, rgba(255, 233, 198, 0.9), rgba(255, 145, 106, 0.88));
+  box-shadow: 0 8px 18px rgba(255, 132, 96, 0.22);
+}
+
+.dash-btn {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.48), transparent 14%),
+    linear-gradient(180deg, #fff4bc, #ff8c57);
+  box-shadow:
+    inset 0 0 0 8px rgba(255, 245, 200, 0.16),
+    0 14px 24px rgba(255, 129, 90, 0.24);
+}
+
+.dash-btn.active {
+  transform: scale(0.96);
+  filter: saturate(1.18);
+}
+
+.hearts {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.heart {
+  width: 22px;
+  height: 22px;
+  border-radius: 50% 50% 46% 46%;
+  background: linear-gradient(180deg, #ffdfcb, #ff6a59);
+  transform: rotate(45deg);
+  position: relative;
+  box-shadow: 0 0 14px rgba(255, 123, 97, 0.35);
+}
+
+.heart::before,
+.heart::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.heart::before {
+  left: -10px;
+  top: 0;
+}
+
+.heart::after {
+  left: 0;
+  top: -10px;
+}
+
+.heart.lost {
+  opacity: 0.2;
+  filter: grayscale(1);
+}
+
+@media (max-width: 420px) {
+  .joystick-zone {
+    width: 132px;
+    height: 132px;
+  }
+
+  .joystick-base {
+    width: 112px;
+    height: 112px;
+  }
+
+  .joystick-stick {
+    width: 50px;
+    height: 50px;
+    top: 31px;
+    left: 31px;
+  }
+
+  .dash-btn {
+    width: 96px;
+    height: 96px;
+  }
+}

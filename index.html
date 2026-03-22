@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>阿飄躲避球</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="frame">
+        <div class="hud">
+          <div>
+            <p class="label">生氣值</p>
+            <div class="hearts" id="hearts" aria-label="player health"></div>
+          </div>
+          <div class="hud-right">
+            <button class="sound-btn" id="soundBtn" type="button" aria-pressed="false">聲音開</button>
+            <p class="label">撐過時間</p>
+            <p class="timer" id="timer">0.0 秒</p>
+          </div>
+        </div>
+
+        <div class="stage-wrap">
+          <canvas id="game" width="420" height="760" aria-label="阿飄躲避球遊戲"></canvas>
+
+          <div class="overlay" id="startOverlay">
+            <div class="panel">
+              <p class="eyebrow">台灣奇異怪談</p>
+              <h1>阿飄躲避球</h1>
+              <p class="body-copy">
+                操作一位台灣男子，在陰廟霓霧之中閃過阿飄化成的躲避球。被砸中 3 次就結束。
+              </p>
+              <ul class="tips">
+                <li>左下虛擬搖桿移動</li>
+                <li>右下按住可瞬間衝刺</li>
+                <li>撐越久，阿飄越兇</li>
+              </ul>
+              <button class="cta" id="startBtn">開始躲避</button>
+            </div>
+          </div>
+
+          <div class="overlay hidden" id="gameOverOverlay">
+            <div class="panel">
+              <p class="eyebrow">Game Over</p>
+              <h2>男子被阿飄圍毆了</h2>
+              <p class="body-copy" id="finalScore">你撐了 0 秒</p>
+              <button class="cta" id="restartBtn">再次開壇</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="joystick-zone" id="joystickZone">
+            <div class="joystick-base">
+              <div class="joystick-stick" id="joystickStick"></div>
+            </div>
+          </div>
+          <button class="dash-btn" id="dashBtn">衝</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+  </html>
