@@ -15,7 +15,6 @@ const soundBtn = document.getElementById("soundBtn");
 
 const WORLD = { width: canvas.width, height: canvas.height };
 const MAX_HEALTH = 3;
-const JOYSTICK_CENTER = { x: 62, y: 62 };
 
 const state = {
   mode: "start",
@@ -836,25 +835,25 @@ function loop(timestamp) {
   requestAnimationFrame(loop);
 }
 
-function setJoystickPosition(x, y) {
-  joystickStick.style.transform = `translate(${x - JOYSTICK_CENTER.x}px, ${y - JOYSTICK_CENTER.y}px)`;
+function setJoystickPosition(offsetX, offsetY) {
+  joystickStick.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
 }
 
 function updateJoystick(clientX, clientY) {
   const rect = joystickZone.getBoundingClientRect();
+  const stickSize = joystickStick.getBoundingClientRect().width;
+  const maxDistance = Math.max(24, (rect.width - stickSize) / 2);
   const localX = clientX - rect.left;
   const localY = clientY - rect.top;
   const center = { x: rect.width / 2, y: rect.height / 2 };
   const dx = localX - center.x;
   const dy = localY - center.y;
-  const distance = Math.min(42, Math.hypot(dx, dy));
+  const distance = Math.min(maxDistance, Math.hypot(dx, dy));
   const angle = Math.atan2(dy, dx);
-  const limitedX = center.x + Math.cos(angle) * distance;
-  const limitedY = center.y + Math.sin(angle) * distance;
-  const norm = distance / 42;
+  const norm = distance / maxDistance;
   state.touch.moveX = Math.cos(angle) * norm;
   state.touch.moveY = Math.sin(angle) * norm;
-  setJoystickPosition(limitedX - (rect.width - 124) / 2, limitedY - (rect.height - 124) / 2);
+  setJoystickPosition(Math.cos(angle) * distance, Math.sin(angle) * distance);
 }
 
 function resetJoystick() {

@@ -31,20 +31,25 @@ body {
 body {
   min-height: 100vh;
   min-height: 100svh;
+  overflow: hidden;
 }
 
 .app-shell {
   min-height: 100vh;
   min-height: 100svh;
   display: grid;
-  place-items: center;
-  padding: 12px;
+  align-content: start;
+  justify-items: center;
+  padding:
+    max(8px, env(safe-area-inset-top))
+    12px
+    max(10px, env(safe-area-inset-bottom));
 }
 
 .frame {
-  width: min(100%, 460px);
+  width: min(100%, 390px);
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .hud {
@@ -83,6 +88,8 @@ h2 {
 
 .stage-wrap {
   position: relative;
+  width: min(100%, 360px, calc((100svh - 208px) * 0.5526));
+  margin: 0 auto;
   border: 1px solid var(--line);
   border-radius: 28px;
   overflow: hidden;
@@ -104,7 +111,7 @@ canvas {
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 20px;
+  padding: 14px;
   background:
     radial-gradient(circle at center, rgba(252, 188, 127, 0.12), transparent 32%),
     rgba(5, 6, 15, 0.56);
@@ -118,7 +125,7 @@ canvas {
 
 .panel {
   width: min(100%, 340px);
-  padding: 24px 22px;
+  padding: 20px 18px;
   border-radius: 22px;
   background:
     linear-gradient(180deg, rgba(40, 17, 23, 0.88), rgba(17, 19, 36, 0.92)),
@@ -134,17 +141,17 @@ h2 {
 }
 
 .body-copy {
-  margin: 14px 0 0;
+  margin: 10px 0 0;
   color: rgba(243, 233, 210, 0.88);
-  font-size: 1rem;
-  line-height: 1.5;
+  font-size: 0.96rem;
+  line-height: 1.4;
 }
 
 .tips {
-  margin: 16px 0 0;
+  margin: 12px 0 0;
   padding-left: 18px;
   color: rgba(243, 233, 210, 0.9);
-  line-height: 1.6;
+  line-height: 1.45;
 }
 
 .cta,
@@ -172,9 +179,9 @@ h2 {
 }
 
 .cta {
-  margin-top: 18px;
+  margin-top: 14px;
   width: 100%;
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-radius: 999px;
   background: linear-gradient(135deg, var(--accent-soft), var(--accent));
   box-shadow: 0 14px 24px rgba(255, 107, 74, 0.25);
@@ -184,19 +191,21 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  width: min(100%, 360px, calc((100svh - 208px) * 0.5526));
+  margin: 0 auto;
 }
 
 .joystick-zone {
-  width: 148px;
-  height: 148px;
+  width: 126px;
+  height: 126px;
   display: grid;
   place-items: center;
 }
 
 .joystick-base {
-  width: 124px;
-  height: 124px;
+  width: 104px;
+  height: 104px;
   border-radius: 50%;
   background:
     radial-gradient(circle at 40% 35%, rgba(255, 206, 171, 0.12), transparent 24%),
@@ -207,19 +216,19 @@ h2 {
 }
 
 .joystick-stick {
-  width: 56px;
-  height: 56px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   position: absolute;
-  top: 34px;
-  left: 34px;
+  top: 29px;
+  left: 29px;
   background: linear-gradient(180deg, rgba(255, 233, 198, 0.9), rgba(255, 145, 106, 0.88));
   box-shadow: 0 8px 18px rgba(255, 132, 96, 0.22);
 }
 
 .dash-btn {
-  width: 104px;
-  height: 104px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   background:
     radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.48), transparent 14%),
@@ -276,25 +285,56 @@ h2 {
 }
 
 @media (max-width: 420px) {
+  .frame {
+    width: min(100%, 360px);
+  }
+
   .joystick-zone {
-    width: 132px;
-    height: 132px;
+    width: 118px;
+    height: 118px;
   }
 
   .joystick-base {
-    width: 112px;
-    height: 112px;
+    width: 96px;
+    height: 96px;
   }
 
   .joystick-stick {
-    width: 50px;
-    height: 50px;
-    top: 31px;
-    left: 31px;
+    width: 42px;
+    height: 42px;
+    top: 27px;
+    left: 27px;
   }
 
   .dash-btn {
-    width: 96px;
-    height: 96px;
+    width: 82px;
+    height: 82px;
+  }
+}
+
+@media (max-height: 840px) {
+  .app-shell {
+    padding:
+      max(6px, env(safe-area-inset-top))
+      10px
+      max(8px, env(safe-area-inset-bottom));
+  }
+
+  .frame {
+    gap: 6px;
+  }
+
+  .label,
+  .eyebrow {
+    font-size: 0.72rem;
+  }
+
+  .timer {
+    font-size: 1.2rem;
+  }
+
+  h1,
+  h2 {
+    font-size: clamp(1.7rem, 6vw, 2.3rem);
   }
 }
